@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -12,6 +13,8 @@
 
 int main(void)
 {
+	srand(time(NULL));
+
 	int sock;
 
 	// create a socket
@@ -41,17 +44,49 @@ int main(void)
 		return 1;
 	}
 
-	struct can_frame frame; // create can frame
+	// struct can_frame frame; // create can frame
+	//
+	// frame.can_id = 0x1234; // can id
+	// frame.can_dlc = 5; // payload size
+	// sprintf(frame.data, "hello"); // write data to can frame
+	//
+	// while (1)
+	// {
+	// 	// writes n bytes over can socket, returns number of bytes written
+	// 	if (write(sock, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+	// 	{
+	// 		perror("Write failed");
+	// 		return 1;
+	// 	}
+	//
+	// 	printf("wrote hello to can0\n");
+	// }
 
-	frame.can_id = 0x1234; // can id
-	frame.can_dlc = 5; // payload size
-	sprintf(frame.data, "hello"); // write data to can frame
 
-	// writes n bytes over can socket, returns number of bytes written
-	if (write(sock, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+
+	for (int i = 0; i < 5; i++)
 	{
-		perror("Write failed");
-		return 1;
+		struct can_frame frame; // create can frame
+
+		frame.can_id = 0x0000; // can frame id
+		frame.can_dlc = 8; // can frame size
+
+		// int neg = 0;
+		// if (rand() % 2 == 1) neg = 1;
+
+		double throttle_percent = (double)rand() / (double)RAND_MAX; // double between 0 and 1
+
+		memcpy(frame.data, &throttle_percent, sizeof(double)); // copy double into frame
+
+		if (write(sock, &frame, sizeof(frame)) < 0) // send frame over can0 socket
+		{
+			perror("Write failed");
+			return 1;
+		}
+
+		printf("Wrote %lf to can0\n", throttle_percent);
+
+		sleep(1);
 	}
 
 	// close socket
