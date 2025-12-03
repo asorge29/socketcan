@@ -27,9 +27,11 @@ int main(void)
 
 	struct ifreq ifr;
 
+	char can_net[] = "can0";
+
 	// retrieve the index interface based on interface name
 	// use interface index 0 for all can interfaces
-	strcpy(ifr.ifr_name, "can0");
+	strcpy(ifr.ifr_name, can_net);
 	ioctl(sock, SIOCGIFINDEX, &ifr);
 
 	struct sockaddr_can addr;
@@ -62,13 +64,13 @@ int main(void)
 	// 	printf("wrote hello to can0\n");
 	// }
 
+	int id = 0x101;
 
-
-	for (int i = 0; i < 5; i++)
+	while (1)
 	{
 		struct can_frame frame; // create can frame
 
-		frame.can_id = 0x0000; // can frame id
+		frame.can_id = id; // can frame id
 		frame.can_dlc = 8; // can frame size
 
 		// int neg = 0;
@@ -84,8 +86,8 @@ int main(void)
 			return 1;
 		}
 
-		printf("Wrote %lf to can0\n", throttle_percent);
-
+		printf("Wrote %lf to %s\n", throttle_percent, can_net);
+		id++;
 		sleep(1);
 	}
 
